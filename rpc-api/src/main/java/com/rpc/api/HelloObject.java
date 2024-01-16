@@ -5,6 +5,9 @@ import lombok.Data;
 
 import java.io.Serializable;
 
+/**
+ * 测试实体
+ * */
 @AllArgsConstructor
 @Data
 public class HelloObject implements Serializable {

@@ -1,7 +1,6 @@
 package com.rpc.transport.socket.server;
 
-import com.rpc.enumeration.RpcError;
-import com.rpc.exception.RpcException;
+import com.rpc.registry.ServiceRegistry;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -11,34 +10,32 @@ import java.util.concurrent.*;
 
 @Slf4j
 public class SocketRpcServer {
+    private static final int CORE_POOL_SIZE = 5;
+    private static final int MAXIMUM_POOL_SIZE = 50;
+    private static final int KEEP_ALIVE_TIME = 60;
+    private static final int BLOCKING_QUEUE_CAPACITY = 100;
     private final ExecutorService threadPool;
+    private RequestHandler requestHandler = new RequestHandler();
+    private final ServiceRegistry serviceRegistry;
 
-    public SocketRpcServer() {
-        int corePoolSize = 5;
-        int maximumPoolSize = 50;
-        long keepAliveTime = 60;
-        BlockingQueue<Runnable> workingQueue = new ArrayBlockingQueue<>(100);
+    public SocketRpcServer(ServiceRegistry serviceRegistry) {
+        this.serviceRegistry = serviceRegistry;
+        BlockingQueue<Runnable> workingQueue = new ArrayBlockingQueue<>(BLOCKING_QUEUE_CAPACITY);
         ThreadFactory threadFactory = Executors.defaultThreadFactory();
-        threadPool = new ThreadPoolExecutor(corePoolSize, maximumPoolSize, keepAliveTime, TimeUnit.SECONDS, workingQueue, threadFactory);
+        threadPool = new ThreadPoolExecutor(CORE_POOL_SIZE, MAXIMUM_POOL_SIZE, KEEP_ALIVE_TIME, TimeUnit.SECONDS, workingQueue, threadFactory);
     }
 
-    /**
-     * 服务端注册服务
-     * @param service 被代理对象(真实对象)
-     * */
-    public void register (Object service, int port) {
-        if (null == service) {
-            throw new RpcException(RpcError.SERVICE_CAN_NOT_BE_NULL);
-        }
+    public void start (int port) {
         try (ServerSocket serverSocket = new ServerSocket(port);) {
             log.info("server starts...");
             Socket socket;
             while ((socket = serverSocket.accept()) != null) {
-                log.info("client connected! IP address: " + socket.getInetAddress() + ":" + socket.getPort());
-                threadPool.execute(new RequestHandler(socket, service));
+                log.info("client connected! IP address: {}:{}", socket.getInetAddress(), socket.getPort());
+                threadPool.execute(new RequestHandlerThread(socket, requestHandler, serviceRegistry));
             }
+            threadPool.shutdown();
         } catch (IOException e) {
-            log.error("Occur exception:", e);
+            log.error("occur exception when server starts:", e);
         }
     }
 }
