@@ -11,9 +11,9 @@ import lombok.Getter;
 public enum ResponseCode {
     SUCCESS(200, "The remote call is successful"),
     FAIL(500, "The remote call is failed"),
-    NOT_FOUND_METHOD(500, "Method not found"),
-    NOT_FOUND_CLASS(500, "Class not found");
+    METHOD_NOT_FOUND(500, "Method not found"),
+    CLASS_NOT_FOUND(500, "Class not found");
 
-    private final Integer code;
+    private final int code;
     private final String message;
 }

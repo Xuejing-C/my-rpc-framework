@@ -1,5 +1,7 @@
 package com.rpc.transport.socket.server;
 
+import com.rpc.enumeration.RpcError;
+import com.rpc.exception.RpcException;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -25,12 +27,15 @@ public class SocketRpcServer {
      * @param service 被代理对象(真实对象)
      * */
     public void register (Object service, int port) {
+        if (null == service) {
+            throw new RpcException(RpcError.SERVICE_CAN_NOT_BE_NULL);
+        }
         try (ServerSocket serverSocket = new ServerSocket(port);) {
             log.info("server starts...");
             Socket socket;
             while ((socket = serverSocket.accept()) != null) {
-                log.info("client connected");
-                threadPool.execute(new WorkerThread(socket, service));
+                log.info("client connected! IP address: " + socket.getInetAddress() + ":" + socket.getPort());
+                threadPool.execute(new RequestHandler(socket, service));
             }
         } catch (IOException e) {
             log.error("Occur exception:", e);

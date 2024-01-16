@@ -1,7 +1,7 @@
 package com.rpc.transport.socket.client;
 
 import com.rpc.entity.RpcRequest;
-import com.rpc.entity.RpcResponse;
+import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -10,6 +10,7 @@ import java.lang.reflect.Proxy;
 /**
  * JDK动态代理
  * */
+@Slf4j
 public class SocketRpcClientProxy implements InvocationHandler {
 
     private String host;
@@ -34,6 +35,7 @@ public class SocketRpcClientProxy implements InvocationHandler {
      * */
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+        log.info("call invoke method and invoked method is: {}#{}", method.getDeclaringClass().getName(), method.getName());
         RpcRequest rpcRequest = RpcRequest.builder()
                 .interfaceName(method.getDeclaringClass().getName())
                 .methodName(method.getName())
