@@ -13,6 +13,7 @@ import java.io.Serializable;
 @ToString
 @Builder
 public class RpcRequest implements Serializable {
+    private String requestId; // 请求id
     private String interfaceName; // 目标接口
     private String methodName; // 目标方法
     private Object[] parameters; // 参数

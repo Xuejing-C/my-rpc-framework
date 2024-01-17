@@ -12,7 +12,8 @@ public enum RpcError {
     SERVICE_INVOCATION_FAILURE("service invocation failure"),
     SERVICE_CAN_NOT_BE_NULL("service can not be null"),
     SERVICE_NOT_FOUND("service not found"),
-    SERVICE_NOT_IMPLEMENT_ANY_INTERFACE("service not implement any interface");
+    SERVICE_NOT_IMPLEMENT_ANY_INTERFACE("service not implement any interface"),
+    REQUEST_NOT_MATCH_RESPONSE("request and response not match");
 
     private final String message;
 }

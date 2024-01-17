@@ -6,6 +6,7 @@ import com.rpc.serializer.KryoSerializer;
 import com.rpc.transport.RpcClient;
 import com.rpc.transport.netty.codec.NettyKryoDecoder;
 import com.rpc.transport.netty.codec.NettyKryoEncoder;
+import com.rpc.util.RpcMessageChecker;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -77,8 +78,9 @@ public class NettyClient implements RpcClient {
                     }
                 });
                 futureChannel.closeFuture().sync(); // 阻塞等待直到Channel关闭(先获取Channel的CloseFuture对象)
-                AttributeKey<RpcResponse> key = AttributeKey.valueOf("rpcResponse");
+                AttributeKey<RpcResponse> key = AttributeKey.valueOf("rpcResponse" + rpcRequest.getRequestId());
                 RpcResponse rpcResponse = futureChannel.attr(key).get();
+                RpcMessageChecker.check(rpcResponse, rpcRequest);
                 return rpcResponse.getData();
             }
         } catch (InterruptedException e) {

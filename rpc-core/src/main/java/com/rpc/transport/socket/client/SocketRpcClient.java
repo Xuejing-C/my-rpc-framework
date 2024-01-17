@@ -6,6 +6,7 @@ import com.rpc.enumeration.ResponseCode;
 import com.rpc.enumeration.RpcError;
 import com.rpc.exception.RpcException;
 import com.rpc.transport.RpcClient;
+import com.rpc.util.RpcMessageChecker;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -40,6 +41,7 @@ public class SocketRpcClient implements RpcClient {
                 log.error("service invocation failure, service: {}, response: {}", rpcRequest.getInterfaceName(), rpcResponse);
                 throw new RpcException(RpcError.SERVICE_INVOCATION_FAILURE, " service" + rpcRequest.getInterfaceName());
             }
+            RpcMessageChecker.check(rpcResponse, rpcRequest);
             return rpcResponse.getData();
         } catch (IOException | ClassNotFoundException e) {
             log.error("Occur exception:", e);
