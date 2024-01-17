@@ -4,6 +4,9 @@ import lombok.*;
 
 import java.io.Serializable;
 
+/**
+ * 请求
+ * */
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter

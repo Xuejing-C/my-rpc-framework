@@ -26,6 +26,8 @@
         <!--netty-->
         <netty.version>4.1.50.Final</netty.version>
         <kryo.version>4.0.2</kryo.version>
+        <!--tools-->
+        <guava.version>29.0-jre</guava.version>
     </properties>
 
     <dependencies>

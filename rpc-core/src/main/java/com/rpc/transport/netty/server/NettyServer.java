@@ -18,6 +18,9 @@ import io.netty.handler.logging.LoggingHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * NIO服务端
+ * */
 public class NettyServer {
     private static final Logger logger = LoggerFactory.getLogger(NettyServer.class);
     private final int port;

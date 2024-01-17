@@ -5,6 +5,9 @@ import lombok.*;
 
 import java.io.Serializable;
 
+/**
+ * 响应
+ * */
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter

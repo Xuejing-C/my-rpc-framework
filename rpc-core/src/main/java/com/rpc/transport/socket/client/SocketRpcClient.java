@@ -15,7 +15,7 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 
 /**
- * 客户端
+ * Socket(BIO)客户端
  * */
 @Slf4j
 @AllArgsConstructor
