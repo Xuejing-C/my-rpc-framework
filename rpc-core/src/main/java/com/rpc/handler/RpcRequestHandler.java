@@ -1,4 +1,4 @@
-package com.rpc.transport.socket.server;
+package com.rpc.handler;
 
 import com.rpc.entity.RpcRequest;
 import com.rpc.entity.RpcResponse;
@@ -12,7 +12,7 @@ import java.lang.reflect.Method;
  * 进行过程调用的处理器
  * */
 @Slf4j
-public class RequestHandler {
+public class RpcRequestHandler {
     public Object handle(RpcRequest rpcRequest, Object service) {
         Object result = null;
         try {

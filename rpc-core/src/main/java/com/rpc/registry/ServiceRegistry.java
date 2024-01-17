@@ -1,7 +1,7 @@
 package com.rpc.registry;
 
 /**
- * 服务注册表通用接口
+ * 服务注册中心接口
  * */
 public interface ServiceRegistry {
     /**

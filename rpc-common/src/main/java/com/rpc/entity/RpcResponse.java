@@ -7,7 +7,10 @@ import java.io.Serializable;
 
 @NoArgsConstructor
 @AllArgsConstructor
-@Data
+@Getter
+@Setter
+@Builder
+@ToString
 public class RpcResponse<T> implements Serializable {
     private Integer code; // 响应状态码
     private String message; // 响应状态补充信息

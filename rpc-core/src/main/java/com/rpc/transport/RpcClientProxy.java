@@ -1,4 +1,4 @@
-package com.rpc.transport.socket.client;
+package com.rpc.transport;
 
 import com.rpc.entity.RpcRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -11,14 +11,11 @@ import java.lang.reflect.Proxy;
  * JDK动态代理
  * */
 @Slf4j
-public class SocketRpcClientProxy implements InvocationHandler {
+public class RpcClientProxy implements InvocationHandler {
+    private final RpcClient rpcClient;
 
-    private String host;
-    private int port;
-
-    public SocketRpcClientProxy(String host, int port) {
-        this.host = host;
-        this.port = port;
+    public RpcClientProxy(RpcClient rpcClient) {
+        this.rpcClient = rpcClient;
     }
 
     /**
@@ -42,7 +39,6 @@ public class SocketRpcClientProxy implements InvocationHandler {
                 .parameters(args)
                 .paramTypes(method.getParameterTypes())
                 .build();
-        SocketRpcClient socketRpcClient = new SocketRpcClient();
-        return socketRpcClient.sendRpcRequest(rpcRequest, host, port);
+        return rpcClient.sendRpcRequest(rpcRequest);
     }
 }

@@ -5,6 +5,8 @@ import com.rpc.entity.RpcResponse;
 import com.rpc.enumeration.ResponseCode;
 import com.rpc.enumeration.RpcError;
 import com.rpc.exception.RpcException;
+import com.rpc.transport.RpcClient;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -16,9 +18,13 @@ import java.net.Socket;
  * 客户端
  * */
 @Slf4j
-public class SocketRpcClient {
+@AllArgsConstructor
+public class SocketRpcClient implements RpcClient {
+    private String host;
+    private int port;
 
-    public Object sendRpcRequest(RpcRequest rpcRequest, String host, int port) {
+    @Override
+    public Object sendRpcRequest(RpcRequest rpcRequest) {
         try (Socket socket = new Socket(host, port)) {
             ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
             objectOutputStream.writeObject(rpcRequest);

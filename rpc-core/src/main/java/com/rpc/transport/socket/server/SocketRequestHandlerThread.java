@@ -2,31 +2,25 @@ package com.rpc.transport.socket.server;
 
 import com.rpc.entity.RpcRequest;
 import com.rpc.entity.RpcResponse;
-import com.rpc.enumeration.ResponseCode;
+import com.rpc.handler.RpcRequestHandler;
 import com.rpc.registry.ServiceRegistry;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.net.Socket;
 
 /**
  * 处理RpcRequest的工作线程
  * */
 @Slf4j
-public class RequestHandlerThread implements Runnable{
+@AllArgsConstructor
+public class SocketRequestHandlerThread implements Runnable{
     private Socket socket;
-    private RequestHandler requestHandler;
+    private RpcRequestHandler rpcRequestHandler;
     private ServiceRegistry serviceRegistry;
-
-    public RequestHandlerThread(Socket socket, RequestHandler requestHandler, ServiceRegistry serviceRegistry) {
-        this.socket = socket;
-        this.requestHandler = requestHandler;
-        this.serviceRegistry = serviceRegistry;
-    }
 
     @Override
     public void run() {
@@ -36,7 +30,7 @@ public class RequestHandlerThread implements Runnable{
             String interfaceName = rpcRequest.getInterfaceName();
             Object service = serviceRegistry.getService(interfaceName);
 
-            Object result = requestHandler.handle(rpcRequest, service);
+            Object result = rpcRequestHandler.handle(rpcRequest, service);
             objectOutputStream.writeObject(RpcResponse.success(result));
             objectOutputStream.flush();
         } catch (ClassNotFoundException | IOException e) {

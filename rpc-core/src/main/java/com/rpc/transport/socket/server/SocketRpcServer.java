@@ -1,6 +1,8 @@
 package com.rpc.transport.socket.server;
 
+import com.rpc.handler.RpcRequestHandler;
 import com.rpc.registry.ServiceRegistry;
+import com.rpc.transport.RpcServer;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -9,13 +11,13 @@ import java.net.Socket;
 import java.util.concurrent.*;
 
 @Slf4j
-public class SocketRpcServer {
+public class SocketRpcServer implements RpcServer {
     private static final int CORE_POOL_SIZE = 5;
     private static final int MAXIMUM_POOL_SIZE = 50;
     private static final int KEEP_ALIVE_TIME = 60;
     private static final int BLOCKING_QUEUE_CAPACITY = 100;
     private final ExecutorService threadPool;
-    private RequestHandler requestHandler = new RequestHandler();
+    private RpcRequestHandler rpcRequestHandler = new RpcRequestHandler();
     private final ServiceRegistry serviceRegistry;
 
     public SocketRpcServer(ServiceRegistry serviceRegistry) {
@@ -31,7 +33,7 @@ public class SocketRpcServer {
             Socket socket;
             while ((socket = serverSocket.accept()) != null) {
                 log.info("client connected! IP address: {}:{}", socket.getInetAddress(), socket.getPort());
-                threadPool.execute(new RequestHandlerThread(socket, requestHandler, serviceRegistry));
+                threadPool.execute(new SocketRequestHandlerThread(socket, rpcRequestHandler, serviceRegistry));
             }
             threadPool.shutdown();
         } catch (IOException e) {

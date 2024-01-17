@@ -9,7 +9,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * 默认的服务注册表
+ * 默认的服务注册中心
  * */
 @Slf4j
 public class DefaultServiceRegistry implements ServiceRegistry{
@@ -18,8 +18,8 @@ public class DefaultServiceRegistry implements ServiceRegistry{
      * key: service/interface name
      * value: service
      * */
-    private final Map<String, Object> serviceMap = new ConcurrentHashMap<>();
-    private final Set<String> registeredService = ConcurrentHashMap.newKeySet();
+    private static final Map<String, Object> serviceMap = new ConcurrentHashMap<>();
+    private static final Set<String> registeredService = ConcurrentHashMap.newKeySet();
 
     @Override
     public synchronized <T> void register(T service) {
