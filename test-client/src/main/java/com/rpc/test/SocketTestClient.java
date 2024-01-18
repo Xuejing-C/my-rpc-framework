@@ -8,7 +8,7 @@ import com.rpc.transport.socket.client.SocketRpcClient;
 
 public class SocketTestClient {
     public static void main(String[] args) {
-        RpcClient socketRpcClient = new SocketRpcClient("127.0.0.1", 9000);
+        RpcClient socketRpcClient = new SocketRpcClient();
         RpcClientProxy proxy = new RpcClientProxy(socketRpcClient);
 
         HelloService helloService = proxy.getProxy(HelloService.class); // 代理对象

@@ -1,4 +1,4 @@
-package com.rpc.registry;
+package com.rpc.provider;
 
 import com.rpc.enumeration.RpcError;
 import com.rpc.exception.RpcException;
@@ -9,10 +9,10 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * 默认的服务注册中心
+ * 默认的服务注册表
  * */
 @Slf4j
-public class DefaultServiceRegistry implements ServiceRegistry{
+public class ServiceProviderImpl implements ServiceProvider {
     /**
      * 保存接口名和服务的对应关系
      * key: service/interface name
@@ -22,7 +22,7 @@ public class DefaultServiceRegistry implements ServiceRegistry{
     private static final Set<String> registeredService = ConcurrentHashMap.newKeySet();
 
     @Override
-    public synchronized <T> void register(T service) {
+    public <T> void addServiceProvider(T service) {
         // getCanonicalName() 返回类的规范名称(全名)。例如, com.example.MyClass
         String serviceName = service.getClass().getCanonicalName();
         if (registeredService.contains(serviceName)) return;
@@ -38,7 +38,7 @@ public class DefaultServiceRegistry implements ServiceRegistry{
     }
 
     @Override
-    public synchronized Object getService(String serviceName) {
+    public Object getServiceProvider(String serviceName) {
         Object service = serviceMap.get(serviceName);
         if (null == service) {
             throw new RpcException(RpcError.SERVICE_NOT_FOUND);

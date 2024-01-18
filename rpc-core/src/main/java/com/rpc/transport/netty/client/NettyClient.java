@@ -2,6 +2,8 @@ package com.rpc.transport.netty.client;
 
 import com.rpc.entity.RpcRequest;
 import com.rpc.entity.RpcResponse;
+import com.rpc.registry.NacosServiceRegistry;
+import com.rpc.registry.ServiceRegistry;
 import com.rpc.serializer.KryoSerializer;
 import com.rpc.transport.RpcClient;
 import com.rpc.transport.netty.codec.NettyKryoDecoder;
@@ -26,13 +28,11 @@ import java.util.concurrent.atomic.AtomicReference;
  * */
 public class NettyClient implements RpcClient {
     private static final Logger logger = LoggerFactory.getLogger(NettyClient.class);
-    private final String host;
-    private final int port;
     private static final Bootstrap b; // 客户端启动引导类/辅助类
+    private final ServiceRegistry serviceRegistry;
 
-    public NettyClient(String host, int port) {
-        this.host = host;
-        this.port = port;
+    public NettyClient() {
+        this.serviceRegistry = new NacosServiceRegistry();
     }
 
     // 初始化相关资源
@@ -72,10 +72,8 @@ public class NettyClient implements RpcClient {
         // 引用类型原子类，在多线程环境下安全地修改共享的引用对象。
         AtomicReference<Object> result = new AtomicReference<>(null);
         try {
-            InetSocketAddress inetSocketAddress = new InetSocketAddress(00);
-            // ChannelFuture f = b.connect(host, port).sync(); // 尝试建立连接
-            // logger.info("client connect {}", host + ":" + port);
-            Channel futureChannel = ChannelProvider.get(new InetSocketAddress(host, port));
+            InetSocketAddress inetSocketAddress = serviceRegistry.lookupService(rpcRequest.getInterfaceName());
+            Channel futureChannel = ChannelProvider.get(inetSocketAddress);
             logger.info("send message");
             if (futureChannel.isActive()) {
                 futureChannel.writeAndFlush(rpcRequest).addListener(future -> {

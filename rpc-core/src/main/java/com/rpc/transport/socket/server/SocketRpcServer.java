@@ -1,12 +1,16 @@
 package com.rpc.transport.socket.server;
 
 import com.rpc.handler.RpcRequestHandler;
+import com.rpc.provider.ServiceProvider;
+import com.rpc.provider.ServiceProviderImpl;
+import com.rpc.registry.NacosServiceRegistry;
 import com.rpc.registry.ServiceRegistry;
 import com.rpc.transport.RpcServer;
 import com.rpc.util.ThreadPoolFactory;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.*;
@@ -16,17 +20,30 @@ import java.util.concurrent.*;
  * */
 @Slf4j
 public class SocketRpcServer implements RpcServer {
-
+    private final String host;
+    private final int port;
     private final ExecutorService threadPool;
-    private RpcRequestHandler rpcRequestHandler = new RpcRequestHandler();
     private final ServiceRegistry serviceRegistry;
+    private final ServiceProvider serviceProvider;
+    private RpcRequestHandler rpcRequestHandler = new RpcRequestHandler();
 
-    public SocketRpcServer(ServiceRegistry serviceRegistry) {
-        this.serviceRegistry = serviceRegistry;
+    public SocketRpcServer(String host, int port) {
+        this.host = host;
+        this.port = port;
         threadPool = ThreadPoolFactory.createDefaultThreadPool("socket-rpc-server");
+        this.serviceRegistry = new NacosServiceRegistry();
+        this.serviceProvider = new ServiceProviderImpl();
     }
 
-    public void start (int port) {
+    @Override
+    public <T> void publishService(Object service, Class<T> serviceClass) {
+        serviceProvider.addServiceProvider(service);
+        serviceRegistry.register(serviceClass.getCanonicalName(), new InetSocketAddress(host, port));
+        start();
+    }
+
+    @Override
+    public void start () {
         try (ServerSocket serverSocket = new ServerSocket(port);) {
             log.info("server starts...");
             Socket socket;

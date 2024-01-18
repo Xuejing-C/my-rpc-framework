@@ -3,8 +3,8 @@ package com.rpc.handler;
 import com.rpc.entity.RpcRequest;
 import com.rpc.entity.RpcResponse;
 import com.rpc.enumeration.ResponseCode;
-import com.rpc.registry.DefaultServiceRegistry;
-import com.rpc.registry.ServiceRegistry;
+import com.rpc.provider.ServiceProvider;
+import com.rpc.provider.ServiceProviderImpl;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.InvocationTargetException;
@@ -15,9 +15,9 @@ import java.lang.reflect.Method;
  * */
 @Slf4j
 public class RpcRequestHandler {
-    private static final ServiceRegistry serviceRegistry;
+    private static final ServiceProvider serviceProvider;
     static {
-        serviceRegistry = new DefaultServiceRegistry();
+        serviceProvider = new ServiceProviderImpl();
     }
 
     /**
@@ -25,7 +25,7 @@ public class RpcRequestHandler {
      * */
     public Object handle(RpcRequest rpcRequest) {
         Object result = null;
-        Object service = serviceRegistry.getService(rpcRequest.getInterfaceName());
+        Object service = serviceProvider.getServiceProvider(rpcRequest.getInterfaceName());
         try {
             result = invokeTargetMethod(rpcRequest, service);
             log.info("service: {} successfully invoke method: {} ", rpcRequest.getInterfaceName(), rpcRequest.getMethodName());
