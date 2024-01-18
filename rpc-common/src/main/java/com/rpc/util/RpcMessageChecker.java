@@ -17,10 +17,11 @@ public class RpcMessageChecker {
     public static final String INTERFACE_NAME = "interfaceName";
     public static void check(RpcResponse rpcResponse, RpcRequest rpcRequest) {
         if (rpcResponse == null) {
-            log.error("service invocation failure,serviceName:{}", rpcRequest.getInterfaceName());
+            log.error("service invocation failure, rpcResponse is null, serviceName:{}", rpcRequest.getInterfaceName());
             throw new RpcException(RpcError.SERVICE_INVOCATION_FAILURE, INTERFACE_NAME + ":" + rpcRequest.getInterfaceName());
         }
         if (!rpcRequest.getRequestId().equals(rpcResponse.getRequestId())) {
+            log.error("service invocation failure, requestId not match, serviceName:{}, rpcResponse:{}", rpcRequest.getInterfaceName(), rpcResponse);
             throw new RpcException(RpcError.REQUEST_NOT_MATCH_RESPONSE, INTERFACE_NAME + ":" + rpcRequest.getInterfaceName());
         }
         if (rpcResponse.getCode() == null || !rpcResponse.getCode().equals(ResponseCode.SUCCESS.getCode())) {

@@ -9,6 +9,7 @@ import lombok.Getter;
 @AllArgsConstructor
 @Getter
 public enum RpcError {
+    CLIENT_CONNECT_SERVER_FAILURE("cilent connect server failure"),
     SERVICE_INVOCATION_FAILURE("service invocation failure"),
     SERVICE_CAN_NOT_BE_NULL("service can not be null"),
     SERVICE_NOT_FOUND("service not found"),

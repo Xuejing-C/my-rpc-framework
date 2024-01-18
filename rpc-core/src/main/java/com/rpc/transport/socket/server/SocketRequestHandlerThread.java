@@ -19,18 +19,19 @@ import java.net.Socket;
 @AllArgsConstructor
 public class SocketRequestHandlerThread implements Runnable{
     private Socket socket;
-    private RpcRequestHandler rpcRequestHandler;
-    private ServiceRegistry serviceRegistry;
+    private static final RpcRequestHandler rpcRequestHandler;
+
+    static {
+        rpcRequestHandler = new RpcRequestHandler();
+    }
 
     @Override
     public void run() {
         try (ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
              ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream())) {
             RpcRequest rpcRequest = (RpcRequest) objectInputStream.readObject();
-            String interfaceName = rpcRequest.getInterfaceName();
-            Object service = serviceRegistry.getService(interfaceName);
 
-            Object result = rpcRequestHandler.handle(rpcRequest, service);
+            Object result = rpcRequestHandler.handle(rpcRequest);
             objectOutputStream.writeObject(RpcResponse.success(result, rpcRequest.getRequestId()));
             objectOutputStream.flush();
         } catch (ClassNotFoundException | IOException e) {

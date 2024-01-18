@@ -5,6 +5,7 @@ import com.rpc.entity.RpcResponse;
 import com.rpc.handler.RpcRequestHandler;
 import com.rpc.registry.DefaultServiceRegistry;
 import com.rpc.registry.ServiceRegistry;
+import com.rpc.util.ThreadPoolFactory;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
@@ -13,6 +14,8 @@ import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.ExecutorService;
+
 /**
  * 自定义服务端 ChannelHandler
  * 处理客户端发来的消息
@@ -20,11 +23,9 @@ import org.slf4j.LoggerFactory;
 public class NettyServerHandler extends ChannelInboundHandlerAdapter {
     private static final Logger logger = LoggerFactory.getLogger(NettyServerHandler.class);
     private static RpcRequestHandler rpcRequestHandler;
-    private static ServiceRegistry serviceRegistry;
 
     static {
         rpcRequestHandler =new RpcRequestHandler();
-        serviceRegistry = new DefaultServiceRegistry();
     }
 
     // 当服务器接收到客服端发送的消息时，被调用
@@ -34,9 +35,8 @@ public class NettyServerHandler extends ChannelInboundHandlerAdapter {
             RpcRequest rpcRequest = (RpcRequest) msg;
             logger.info(String.format("server receive message: %s", rpcRequest));
 
-            String interfaceName = rpcRequest.getInterfaceName();
-            Object service = serviceRegistry.getService(interfaceName);
-            Object result = rpcRequestHandler.handle(rpcRequest, service);
+            // 执行目标方法（客户端需要执行的方法）并且返回方法结果
+            Object result = rpcRequestHandler.handle(rpcRequest);
             logger.info(String.format("server get result: %s", result.toString()));
 
             ChannelFuture f = ctx.writeAndFlush(RpcResponse.success(result, rpcRequest.getRequestId())); // 将响应消息写回客户端

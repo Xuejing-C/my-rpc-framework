@@ -32,7 +32,7 @@ public class SocketRpcServer implements RpcServer {
             Socket socket;
             while ((socket = serverSocket.accept()) != null) {
                 log.info("client connected! IP address: {}:{}", socket.getInetAddress(), socket.getPort());
-                threadPool.execute(new SocketRequestHandlerThread(socket, rpcRequestHandler, serviceRegistry));
+                threadPool.execute(new SocketRequestHandlerThread(socket));
             }
             threadPool.shutdown();
         } catch (IOException e) {

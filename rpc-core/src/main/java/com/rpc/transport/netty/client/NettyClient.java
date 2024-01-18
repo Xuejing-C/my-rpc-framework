@@ -18,6 +18,9 @@ import io.netty.util.AttributeKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.InetSocketAddress;
+import java.util.concurrent.atomic.AtomicReference;
+
 /**
  * NIO客户端
  * */
@@ -45,6 +48,8 @@ public class NettyClient implements RpcClient {
                 .handler(new LoggingHandler(LogLevel.INFO))
                 // 连接的超时时间
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)
+                .option(ChannelOption.SO_KEEPALIVE, true)
+                .option(ChannelOption.TCP_NODELAY, true)
                 // 指定消息的处理对象
                 .handler(new ChannelInitializer<SocketChannel>() {
                     @Override
@@ -64,12 +69,15 @@ public class NettyClient implements RpcClient {
      * */
     @Override
     public Object sendRpcRequest(RpcRequest rpcRequest) {
+        // 引用类型原子类，在多线程环境下安全地修改共享的引用对象。
+        AtomicReference<Object> result = new AtomicReference<>(null);
         try {
-            ChannelFuture f = b.connect(host, port).sync(); // 尝试建立连接
-            logger.info("client connect {}", host + ":" + port);
-            Channel futureChannel = f.channel();
+            InetSocketAddress inetSocketAddress = new InetSocketAddress(00);
+            // ChannelFuture f = b.connect(host, port).sync(); // 尝试建立连接
+            // logger.info("client connect {}", host + ":" + port);
+            Channel futureChannel = ChannelProvider.get(new InetSocketAddress(host, port));
             logger.info("send message");
-            if (futureChannel != null) {
+            if (futureChannel.isActive()) {
                 futureChannel.writeAndFlush(rpcRequest).addListener(future -> {
                     if (future.isSuccess()) {
                         logger.info("client send message: [{}]", rpcRequest.toString());
@@ -81,11 +89,15 @@ public class NettyClient implements RpcClient {
                 AttributeKey<RpcResponse> key = AttributeKey.valueOf("rpcResponse" + rpcRequest.getRequestId());
                 RpcResponse rpcResponse = futureChannel.attr(key).get();
                 RpcMessageChecker.check(rpcResponse, rpcRequest);
-                return rpcResponse.getData();
+                result.set(rpcResponse.getData());
             }
         } catch (InterruptedException e) {
             logger.error("occur exception when connect server:", e);
         }
-        return null;
+        return result.get();
+    }
+
+    public static Bootstrap initializeBootstrap() {
+        return b;
     }
 }
