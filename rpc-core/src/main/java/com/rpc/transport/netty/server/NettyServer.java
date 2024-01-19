@@ -2,6 +2,7 @@ package com.rpc.transport.netty.server;
 
 import com.rpc.entity.RpcRequest;
 import com.rpc.entity.RpcResponse;
+import com.rpc.hook.ShutdownHook;
 import com.rpc.provider.ServiceProvider;
 import com.rpc.provider.ServiceProviderImpl;
 import com.rpc.registry.NacosServiceRegistry;
@@ -78,8 +79,9 @@ public class NettyServer implements RpcServer {
                             socketChannel.pipeline().addLast(new NettyServerHandler());
                         }
                     });
-
             ChannelFuture f = b.bind(host, port).sync(); // 绑定端口，调用sync方法阻塞直到绑定完成
+
+            ShutdownHook.getShutdownHook().addClearAllHook();
             f.channel().closeFuture().sync(); // 阻塞等待直到服务器Channel关闭(先获取Channel的CloseFuture对象)
         } catch (InterruptedException e) {
             logger.error("occur exception when start server:", e);

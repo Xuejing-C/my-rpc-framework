@@ -17,6 +17,7 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.util.AttributeKey;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,8 +27,9 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * NIO客户端
  * */
+@Slf4j
 public class NettyClient implements RpcClient {
-    private static final Logger logger = LoggerFactory.getLogger(NettyClient.class);
+    private static final  EventLoopGroup eventLoopGroup;
     private static final Bootstrap b; // 客户端启动引导类/辅助类
     private final ServiceDiscovery serviceDiscovery;
 
@@ -37,7 +39,7 @@ public class NettyClient implements RpcClient {
 
     // 初始化相关资源
     static {
-        EventLoopGroup eventLoopGroup = new NioEventLoopGroup();
+        eventLoopGroup = new NioEventLoopGroup();
         KryoSerializer kryoSerializer = new KryoSerializer();
         b = new Bootstrap();
 
@@ -63,7 +65,6 @@ public class NettyClient implements RpcClient {
 
     /**
      * 发送消息到服务端
-     *
      * @param rpcRequest 消息体
      * @return 服务端返回的数据
      * */
@@ -74,13 +75,13 @@ public class NettyClient implements RpcClient {
         try {
             InetSocketAddress inetSocketAddress = serviceDiscovery.lookupService(rpcRequest.getInterfaceName());
             Channel futureChannel = ChannelProvider.get(inetSocketAddress);
-            logger.info("send message");
+            log.info("send message");
             if (futureChannel.isActive()) {
                 futureChannel.writeAndFlush(rpcRequest).addListener(future -> {
                     if (future.isSuccess()) {
-                        logger.info("client send message: [{}]", rpcRequest.toString());
+                        log.info("client send message: [{}]", rpcRequest.toString());
                     } else {
-                        logger.error("send failed:", future.cause());
+                        log.error("send failed:", future.cause());
                     }
                 });
                 futureChannel.closeFuture().sync(); // 阻塞等待直到Channel关闭(先获取Channel的CloseFuture对象)
@@ -90,10 +91,12 @@ public class NettyClient implements RpcClient {
                 result.set(rpcResponse.getData());
             } else {
                 futureChannel.close();
+                eventLoopGroup.shutdownGracefully();
                 System.exit(0);
             }
         } catch (InterruptedException e) {
-            logger.error("occur exception when connect server:", e);
+            log.error("occur exception when connect server:", e);
+            Thread.currentThread().interrupt();
         }
         return result.get();
     }

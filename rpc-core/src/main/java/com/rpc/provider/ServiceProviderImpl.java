@@ -9,7 +9,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * 默认的服务注册表
+ * 默认的服务表
  * */
 @Slf4j
 public class ServiceProviderImpl implements ServiceProvider {

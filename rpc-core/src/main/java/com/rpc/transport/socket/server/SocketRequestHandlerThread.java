@@ -3,7 +3,6 @@ package com.rpc.transport.socket.server;
 import com.rpc.entity.RpcRequest;
 import com.rpc.entity.RpcResponse;
 import com.rpc.handler.RpcRequestHandler;
-import com.rpc.registry.ServiceRegistry;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -19,11 +18,7 @@ import java.net.Socket;
 @AllArgsConstructor
 public class SocketRequestHandlerThread implements Runnable{
     private Socket socket;
-    private static final RpcRequestHandler rpcRequestHandler;
-
-    static {
-        rpcRequestHandler = new RpcRequestHandler();
-    }
+    private RpcRequestHandler rpcRequestHandler;
 
     @Override
     public void run() {

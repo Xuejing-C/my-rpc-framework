@@ -15,20 +15,15 @@ import java.net.InetSocketAddress;
  */
 @Slf4j
 public class NacosServiceRegistry implements ServiceRegistry{
-    private static final String SERVER_ADDR = "127.0.0.1:8848";
-    private final NamingService namingService;
-
-    public NacosServiceRegistry() {
-        this.namingService = NacosUtil.getNamingService();
-    }
-
     /**
      * 服务注册
      * */
     @Override
     public void register(String serviceName, InetSocketAddress inetSocketAddress) {
         try {
-            NacosUtil.registerService(namingService, serviceName, inetSocketAddress);
+            NacosUtil.registerService(serviceName, inetSocketAddress);
+            log.info("register service [{}] to Nacos, service address: {}:{}", serviceName, inetSocketAddress.getAddress(),
+                    inetSocketAddress.getPort());
         } catch (NacosException e) {
             log.error("occur exception when register service: ", e);
             throw new RpcException(RpcError.SERVICE_REGISTRATION_FAILURE);

@@ -1,4 +1,4 @@
-package com.rpc.util;
+package com.rpc.factory;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import lombok.NoArgsConstructor;
@@ -18,12 +18,18 @@ public class ThreadPoolFactory {
     private static final int KEEP_ALIVE_TIME = 1;
     private static final int BLOCKING_QUEUE_CAPACITY = 100;
 
+    /**
+     * 创建带有自定义线程名前缀的线程池
+     */
     public static ExecutorService createDefaultThreadPool(String threadNamePrefix) {
         return createDefaultThreadPool(threadNamePrefix, false);
     }
 
     /**
-     * 创建线程池
+     * 创建带有自定义线程名前缀的线程池。
+     * @param threadNamePrefix 线程名前缀
+     * @param daemon 是否为守护线程
+     * @return 自定义线程池
      */
     public static ExecutorService createDefaultThreadPool(String threadNamePrefix, Boolean daemon) {
         // 使用有界队列
@@ -33,8 +39,8 @@ public class ThreadPoolFactory {
     }
 
     /**
-     * 创建 ThreadFactory 。如果threadNamePrefix不为空则使用自建ThreadFactory，否则使用defaultThreadFactory
-     *
+     * 创建 ThreadFactory 。
+     * 如果threadNamePrefix不为空则使用自建ThreadFactory，否则使用defaultThreadFactory
      * @param threadNamePrefix 作为创建的线程名字的前缀
      * @param daemon           指定是否为 Daemon Thread(守护线程)
      * @return ThreadFactory

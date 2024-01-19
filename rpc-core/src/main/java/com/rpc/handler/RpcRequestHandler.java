@@ -11,7 +11,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 /**
- * 进行过程调用的处理器
+ * rpcRequest 处理器
  * */
 @Slf4j
 public class RpcRequestHandler {
@@ -21,27 +21,25 @@ public class RpcRequestHandler {
     }
 
     /**
-     * 处理 rpcRequest 并且返回方法执行结果
+     * 获取服务实例 & 获取方法执行结果
      * */
     public Object handle(RpcRequest rpcRequest) {
-        Object result = null;
         Object service = serviceProvider.getServiceProvider(rpcRequest.getInterfaceName());
-        try {
-            result = invokeTargetMethod(rpcRequest, service);
-            log.info("service: {} successfully invoke method: {} ", rpcRequest.getInterfaceName(), rpcRequest.getMethodName());
-        } catch (InvocationTargetException | IllegalAccessException e) {
-            log.error("occur exception", e);
-        }
-        return result;
+        return invokeTargetMethod(rpcRequest, service);
     }
 
-    private Object invokeTargetMethod(RpcRequest rpcRequest, Object service) throws InvocationTargetException, IllegalAccessException {
-        Method method;
+    /**
+     * 执行目标方法
+     * */
+    private Object invokeTargetMethod(RpcRequest rpcRequest, Object service) {
+        Object result;
         try {
-            method = service.getClass().getMethod(rpcRequest.getMethodName(), rpcRequest.getParamTypes());
-        } catch (NoSuchMethodException e) {
+            Method method = service.getClass().getMethod(rpcRequest.getMethodName(), rpcRequest.getParamTypes());
+            result = method.invoke(service, rpcRequest.getParameters());
+            log.info("successfully invoke method [{}] in service [{}]", rpcRequest.getMethodName(), rpcRequest.getInterfaceName());
+        } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
             return RpcResponse.fail(ResponseCode.METHOD_NOT_FOUND, rpcRequest.getRequestId());
         }
-        return method.invoke(service, rpcRequest.getParameters());
+        return result;
     }
 }
