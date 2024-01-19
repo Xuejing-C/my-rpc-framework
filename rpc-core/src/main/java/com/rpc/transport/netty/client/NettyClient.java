@@ -2,8 +2,8 @@ package com.rpc.transport.netty.client;
 
 import com.rpc.entity.RpcRequest;
 import com.rpc.entity.RpcResponse;
-import com.rpc.registry.NacosServiceRegistry;
-import com.rpc.registry.ServiceRegistry;
+import com.rpc.registry.NacosServiceDiscovery;
+import com.rpc.registry.ServiceDiscovery;
 import com.rpc.serializer.KryoSerializer;
 import com.rpc.transport.RpcClient;
 import com.rpc.transport.netty.codec.NettyKryoDecoder;
@@ -29,10 +29,10 @@ import java.util.concurrent.atomic.AtomicReference;
 public class NettyClient implements RpcClient {
     private static final Logger logger = LoggerFactory.getLogger(NettyClient.class);
     private static final Bootstrap b; // 客户端启动引导类/辅助类
-    private final ServiceRegistry serviceRegistry;
+    private final ServiceDiscovery serviceDiscovery;
 
     public NettyClient() {
-        this.serviceRegistry = new NacosServiceRegistry();
+        this.serviceDiscovery = new NacosServiceDiscovery();
     }
 
     // 初始化相关资源
@@ -72,7 +72,7 @@ public class NettyClient implements RpcClient {
         // 引用类型原子类，在多线程环境下安全地修改共享的引用对象。
         AtomicReference<Object> result = new AtomicReference<>(null);
         try {
-            InetSocketAddress inetSocketAddress = serviceRegistry.lookupService(rpcRequest.getInterfaceName());
+            InetSocketAddress inetSocketAddress = serviceDiscovery.lookupService(rpcRequest.getInterfaceName());
             Channel futureChannel = ChannelProvider.get(inetSocketAddress);
             logger.info("send message");
             if (futureChannel.isActive()) {
@@ -88,6 +88,9 @@ public class NettyClient implements RpcClient {
                 RpcResponse rpcResponse = futureChannel.attr(key).get();
                 RpcMessageChecker.check(rpcResponse, rpcRequest);
                 result.set(rpcResponse.getData());
+            } else {
+                futureChannel.close();
+                System.exit(0);
             }
         } catch (InterruptedException e) {
             logger.error("occur exception when connect server:", e);

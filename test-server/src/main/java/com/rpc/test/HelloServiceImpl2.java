@@ -5,11 +5,11 @@ import com.rpc.api.HelloService;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class HelloServiceImpl implements HelloService {
+public class HelloServiceImpl2 implements HelloService {
 
     @Override
     public String hello(HelloObject helloObject) {
         log.info("Receive message: {}.", helloObject.getMessage());
-        return "Receiver message from Netty service";
+        return "Receiver message from Socket service";
     }
 }

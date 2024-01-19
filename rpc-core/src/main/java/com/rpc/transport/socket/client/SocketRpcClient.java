@@ -5,11 +5,10 @@ import com.rpc.entity.RpcResponse;
 import com.rpc.enumeration.ResponseCode;
 import com.rpc.enumeration.RpcError;
 import com.rpc.exception.RpcException;
-import com.rpc.registry.NacosServiceRegistry;
-import com.rpc.registry.ServiceRegistry;
+import com.rpc.registry.NacosServiceDiscovery;
+import com.rpc.registry.ServiceDiscovery;
 import com.rpc.transport.RpcClient;
 import com.rpc.util.RpcMessageChecker;
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -23,14 +22,14 @@ import java.net.Socket;
  * */
 @Slf4j
 public class SocketRpcClient implements RpcClient {
-    private final ServiceRegistry serviceRegistry;
+    private final ServiceDiscovery serviceDiscovery;
     public SocketRpcClient() {
-        this.serviceRegistry = new NacosServiceRegistry();
+        this.serviceDiscovery = new NacosServiceDiscovery();
     }
 
     @Override
     public Object sendRpcRequest(RpcRequest rpcRequest) {
-        InetSocketAddress inetSocketAddress = serviceRegistry.lookupService(rpcRequest.getInterfaceName());
+        InetSocketAddress inetSocketAddress = serviceDiscovery.lookupService(rpcRequest.getInterfaceName());
         try (Socket socket = new Socket()) {
             socket.connect(inetSocketAddress);
             ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());

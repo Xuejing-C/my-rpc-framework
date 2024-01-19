@@ -2,7 +2,6 @@ package com.rpc.test;
 
 import com.rpc.api.HelloObject;
 import com.rpc.api.HelloService;
-import com.rpc.entity.RpcResponse;
 import com.rpc.transport.RpcClient;
 import com.rpc.transport.RpcClientProxy;
 import com.rpc.transport.netty.client.NettyClient;
