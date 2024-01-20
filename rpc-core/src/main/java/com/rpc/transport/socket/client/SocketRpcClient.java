@@ -47,7 +47,7 @@ public class SocketRpcClient implements RpcClient {
                 throw new RpcException(RpcError.SERVICE_INVOCATION_FAILURE, " service" + rpcRequest.getInterfaceName());
             }
             RpcMessageChecker.check(rpcResponse, rpcRequest);
-            return rpcResponse.getData();
+            return rpcResponse;
         } catch (IOException | ClassNotFoundException e) {
             log.error("Occur exception:", e);
             throw new RpcException("service invocation failure: ", e);

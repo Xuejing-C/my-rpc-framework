@@ -2,6 +2,7 @@ package com.rpc.transport.netty.client;
 
 import com.rpc.entity.RpcRequest;
 import com.rpc.entity.RpcResponse;
+import com.rpc.factory.SingletonFactory;
 import com.rpc.registry.NacosServiceDiscovery;
 import com.rpc.registry.ServiceDiscovery;
 import com.rpc.serializer.KryoSerializer;
@@ -21,8 +22,9 @@ import io.netty.util.AttributeKey;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.InetSocketAddress;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * NIO客户端
@@ -32,9 +34,11 @@ public class NettyClient implements RpcClient {
     private static final  EventLoopGroup eventLoopGroup;
     private static final Bootstrap b; // 客户端启动引导类/辅助类
     private final ServiceDiscovery serviceDiscovery;
+    private final UnprocessedRequests unprocessedRequests;
 
     public NettyClient() {
         this.serviceDiscovery = new NacosServiceDiscovery();
+        this.unprocessedRequests = SingletonFactory.getInstance(UnprocessedRequests.class);
     }
 
     // 初始化相关资源
@@ -50,7 +54,7 @@ public class NettyClient implements RpcClient {
                 .handler(new LoggingHandler(LogLevel.INFO))
                 // 连接的超时时间
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)
-                .option(ChannelOption.SO_KEEPALIVE, true)
+                // .option(ChannelOption.SO_KEEPALIVE, true)
                 .option(ChannelOption.TCP_NODELAY, true)
                 // 指定消息的处理对象
                 .handler(new ChannelInitializer<SocketChannel>() {
@@ -74,36 +78,45 @@ public class NettyClient implements RpcClient {
      * @return 服务端返回的数据
      * */
     @Override
-    public Object sendRpcRequest(RpcRequest rpcRequest) {
+    public CompletableFuture<RpcResponse> sendRpcRequest(RpcRequest rpcRequest) {
         // 引用类型原子类，在多线程环境下安全地修改共享的引用对象。
-        AtomicReference<Object> result = new AtomicReference<>(null);
+        // AtomicReference<Object> result = new AtomicReference<>(null);
+        // CompletableFuture 支持并发(线程安全)和异步操作
+        CompletableFuture<RpcResponse> resultFuture = new CompletableFuture<>();
         try {
             InetSocketAddress inetSocketAddress = serviceDiscovery.lookupService(rpcRequest.getInterfaceName());
             Channel futureChannel = ChannelProvider.get(inetSocketAddress);
             log.info("send message");
             if (futureChannel.isActive()) {
-                futureChannel.writeAndFlush(rpcRequest).addListener(future -> {
+                unprocessedRequests.put(rpcRequest.getRequestId(), resultFuture);
+                futureChannel.writeAndFlush(rpcRequest).addListener((ChannelFutureListener) future -> {
                     if (future.isSuccess()) {
                         log.info("client send message: [{}]", rpcRequest.toString());
                     } else {
+                        future.channel().close();
+                        resultFuture.completeExceptionally(future.cause());
                         log.error("send failed:", future.cause());
                     }
                 });
-                futureChannel.closeFuture().sync(); // 阻塞等待直到Channel关闭(先获取Channel的CloseFuture对象)
-                AttributeKey<RpcResponse> key = AttributeKey.valueOf("rpcResponse" + rpcRequest.getRequestId());
-                RpcResponse rpcResponse = futureChannel.attr(key).get();
+
+                //futureChannel.closeFuture().sync(); // 阻塞等待直到Channel关闭(先获取Channel的CloseFuture对象)
+               // AttributeKey<RpcResponse> key = AttributeKey.valueOf("rpcResponse" + rpcRequest.getRequestId());
+               // RpcResponse rpcResponse = futureChannel.attr(key).get();
+               // RpcMessageChecker.check(rpcResponse, rpcRequest);
+                // result.set(rpcResponse.getData());
+                RpcResponse rpcResponse = resultFuture.get();
                 RpcMessageChecker.check(rpcResponse, rpcRequest);
-                result.set(rpcResponse.getData());
             } else {
                 futureChannel.close();
                 eventLoopGroup.shutdownGracefully();
                 System.exit(0);
             }
-        } catch (InterruptedException e) {
+        } catch (RuntimeException | InterruptedException | ExecutionException e) {
+            unprocessedRequests.remove(rpcRequest.getRequestId());
             log.error("occur exception when connect server:", e);
             Thread.currentThread().interrupt();
         }
-        return result.get();
+        return resultFuture;
     }
 
     public static Bootstrap initializeBootstrap() {

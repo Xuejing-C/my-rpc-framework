@@ -2,6 +2,7 @@ package com.rpc.transport.netty.client;
 
 import com.rpc.entity.RpcRequest;
 import com.rpc.entity.RpcResponse;
+import com.rpc.factory.SingletonFactory;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
@@ -20,6 +21,11 @@ import java.net.InetSocketAddress;
  * */
 @Slf4j
 public class NettyClientHandler extends ChannelInboundHandlerAdapter {
+    private final UnprocessedRequests unprocessedRequests;
+
+    public NettyClientHandler() {
+        this.unprocessedRequests = SingletonFactory.getInstance(UnprocessedRequests.class);
+    }
     /**
      * 读取服务端传输的消息
      */
@@ -29,10 +35,11 @@ public class NettyClientHandler extends ChannelInboundHandlerAdapter {
             RpcResponse rpcResponse = (RpcResponse) msg;
             log.info("client receive msg: [{}]", rpcResponse.toString());
             // 声明一个AttributeKey对象
-            AttributeKey<RpcResponse> key = AttributeKey.valueOf("rpcResponse"+rpcResponse.getRequestId());
+            //AttributeKey<RpcResponse> key = AttributeKey.valueOf("rpcResponse"+rpcResponse.getRequestId());
             // 将服务端的返回结果保存到AttributeMap上，AttributeMap可以视为一个Channel的共享数据源
-            ctx.channel().attr(key).set(rpcResponse);
-            ctx.channel().close();
+           // ctx.channel().attr(key).set(rpcResponse);
+           // ctx.channel().close();
+            unprocessedRequests.complete(rpcResponse);
         } finally {
             // 用于释放 Netty 对象的引用计数，防止内存泄漏。msg是服务端发送的消息对象，在处理完消息后需要手动释放。
             ReferenceCountUtil.release(msg);

@@ -43,8 +43,13 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<RpcRequest> 
                 Object result = rpcRequestHandler.handle(rpcRequest);
                 log.info(String.format("server get result: %s", result.toString()));
 
-                ChannelFuture f = ctx.writeAndFlush(RpcResponse.success(result, rpcRequest.getRequestId())); // 将响应消息写回客户端
-                f.addListener(ChannelFutureListener.CLOSE); // 监听器，当响应消息写回后，关闭与客户端的连接
+                //ChannelFuture f = ctx.writeAndFlush(RpcResponse.success(result, rpcRequest.getRequestId())); // 将响应消息写回客户端
+                //f.addListener(ChannelFutureListener.CLOSE); // 监听器，当响应消息写回后，关闭与客户端的连接
+                if (ctx.channel().isActive() && ctx.channel().isWritable()) {
+                    ctx.writeAndFlush(RpcResponse.success(result, rpcRequest.getRequestId()));
+                } else {
+                    log.error("channel is not writable");
+                }
             } finally {
                 // 用于释放 Netty 对象的引用计数，防止内存泄漏。msg是客户端发送的消息对象，在处理完消息后需要手动释放。
                 ReferenceCountUtil.release(rpcRequest);
