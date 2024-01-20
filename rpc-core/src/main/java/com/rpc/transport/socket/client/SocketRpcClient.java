@@ -5,6 +5,8 @@ import com.rpc.entity.RpcResponse;
 import com.rpc.enumeration.ResponseCode;
 import com.rpc.enumeration.RpcError;
 import com.rpc.exception.RpcException;
+import com.rpc.loadbalancer.LoadBalancer;
+import com.rpc.loadbalancer.RandomLoadBalancer;
 import com.rpc.registry.NacosServiceDiscovery;
 import com.rpc.registry.ServiceDiscovery;
 import com.rpc.transport.RpcClient;
@@ -23,8 +25,12 @@ import java.net.Socket;
 @Slf4j
 public class SocketRpcClient implements RpcClient {
     private final ServiceDiscovery serviceDiscovery;
+
     public SocketRpcClient() {
-        this.serviceDiscovery = new NacosServiceDiscovery();
+        this(new RandomLoadBalancer());
+    }
+    public SocketRpcClient(LoadBalancer loadBalancer) {
+        this.serviceDiscovery = new NacosServiceDiscovery(loadBalancer);
     }
 
     @Override

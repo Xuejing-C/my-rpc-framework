@@ -2,6 +2,8 @@ package com.rpc.registry;
 
 import com.alibaba.nacos.api.exception.NacosException;
 import com.alibaba.nacos.api.naming.pojo.Instance;
+import com.rpc.loadbalancer.LoadBalancer;
+import com.rpc.loadbalancer.RandomLoadBalancer;
 import com.rpc.util.NacosUtil;
 import lombok.extern.slf4j.Slf4j;
 
@@ -13,6 +15,11 @@ import java.util.List;
  * */
 @Slf4j
 public class NacosServiceDiscovery implements ServiceDiscovery{
+    private final LoadBalancer loadBalancer;
+    public NacosServiceDiscovery(LoadBalancer loadBalancer) {
+        if (loadBalancer == null) this.loadBalancer = new RandomLoadBalancer();
+        else this.loadBalancer = loadBalancer;
+    }
     /**
      * 服务发现
      * */
@@ -20,7 +27,8 @@ public class NacosServiceDiscovery implements ServiceDiscovery{
     public InetSocketAddress lookupService(String serviceName) {
         try {
             List<Instance> instances = NacosUtil.getAllInstance(serviceName);
-            Instance instance = instances.get(0);
+            Instance instance = loadBalancer.select(instances);
+            log.info("service instance is {}", instance);
             return new InetSocketAddress(instance.getIp(), instance.getPort());
         } catch (NacosException e) {
             log.error("occur exception when look up service: ", e);

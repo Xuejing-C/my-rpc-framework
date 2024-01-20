@@ -4,6 +4,7 @@ import com.rpc.entity.RpcRequest;
 import com.rpc.entity.RpcResponse;
 import com.rpc.transport.netty.client.NettyClient;
 import com.rpc.transport.socket.client.SocketRpcClient;
+import com.rpc.util.RpcMessageChecker;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.InvocationHandler;
@@ -51,22 +52,22 @@ public class RpcClientProxy implements InvocationHandler {
                 .paramTypes(method.getParameterTypes())
                 .heartBeat(false)
                 .build();
-        Object result = null;
+        RpcResponse rpcResponse = null;
         if (rpcClient instanceof NettyClient) {
             // Future 在实际使用过程中存在一些局限性比如不支持异步任务的编排组合、获取计算结果的 get() 方法为阻塞调用。
             CompletableFuture<RpcResponse> completableFuture = (CompletableFuture<RpcResponse>) rpcClient.sendRpcRequest(rpcRequest);
             try {
                 // 获取异步调用的结果，阻塞等待直到结果返回
-                result = completableFuture.get().getData();
+                rpcResponse = completableFuture.get();
             } catch (InterruptedException | ExecutionException e) {
                 log.error("method call request failed to send", e);
                 return null;
             }
         }
         if (rpcClient instanceof SocketRpcClient) {
-            RpcResponse rpcResponse = (RpcResponse) rpcClient.sendRpcRequest(rpcRequest);
-            result = rpcResponse.getData();
+            rpcResponse = (RpcResponse) rpcClient.sendRpcRequest(rpcRequest);
         }
-        return result;
+        RpcMessageChecker.check(rpcResponse, rpcRequest);
+        return rpcResponse.getData();
     }
 }

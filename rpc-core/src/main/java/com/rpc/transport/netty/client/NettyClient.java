@@ -3,6 +3,8 @@ package com.rpc.transport.netty.client;
 import com.rpc.entity.RpcRequest;
 import com.rpc.entity.RpcResponse;
 import com.rpc.factory.SingletonFactory;
+import com.rpc.loadbalancer.LoadBalancer;
+import com.rpc.loadbalancer.RandomLoadBalancer;
 import com.rpc.registry.NacosServiceDiscovery;
 import com.rpc.registry.ServiceDiscovery;
 import com.rpc.serializer.KryoSerializer;
@@ -37,7 +39,10 @@ public class NettyClient implements RpcClient {
     private final UnprocessedRequests unprocessedRequests;
 
     public NettyClient() {
-        this.serviceDiscovery = new NacosServiceDiscovery();
+        this(new RandomLoadBalancer());
+    }
+    public NettyClient(LoadBalancer loadBalancer) {
+        this.serviceDiscovery = new NacosServiceDiscovery(loadBalancer);
         this.unprocessedRequests = SingletonFactory.getInstance(UnprocessedRequests.class);
     }
 
