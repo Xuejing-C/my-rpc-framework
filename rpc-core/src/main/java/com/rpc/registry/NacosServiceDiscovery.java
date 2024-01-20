@@ -1,7 +1,6 @@
 package com.rpc.registry;
 
 import com.alibaba.nacos.api.exception.NacosException;
-import com.alibaba.nacos.api.naming.NamingService;
 import com.alibaba.nacos.api.naming.pojo.Instance;
 import com.rpc.util.NacosUtil;
 import lombok.extern.slf4j.Slf4j;

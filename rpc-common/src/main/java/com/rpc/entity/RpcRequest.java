@@ -9,8 +9,7 @@ import java.io.Serializable;
  * */
 @NoArgsConstructor
 @AllArgsConstructor
-@Getter
-@ToString
+@Data
 @Builder
 public class RpcRequest implements Serializable {
     private String requestId; // 请求id
@@ -18,4 +17,5 @@ public class RpcRequest implements Serializable {
     private String methodName; // 目标方法
     private Object[] parameters; // 参数
     private Class<?>[] paramTypes; // 参数类型
+    private Boolean heartBeat; // 是否心跳检测包
 }

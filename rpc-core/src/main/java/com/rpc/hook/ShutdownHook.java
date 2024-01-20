@@ -4,8 +4,6 @@ import com.rpc.factory.ThreadPoolFactory;
 import com.rpc.util.NacosUtil;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.concurrent.ExecutorService;
-
 /**
  * Shutdown Hook 是 Java 虚拟机提供的一种机制，允许在程序关闭时执行一些清理或资源释放的操作。
  * 当服务端（provider）关闭时，清除其所有服务实例。

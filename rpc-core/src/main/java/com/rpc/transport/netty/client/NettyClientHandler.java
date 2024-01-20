@@ -1,11 +1,18 @@
 package com.rpc.transport.netty.client;
 
+import com.rpc.entity.RpcRequest;
 import com.rpc.entity.RpcResponse;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.handler.timeout.IdleState;
+import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.util.AttributeKey;
 import io.netty.util.ReferenceCountUtil;
 import lombok.extern.slf4j.Slf4j;
+
+import java.net.InetSocketAddress;
 
 /**
  * 自定义客户端ChannelHandler
@@ -33,12 +40,35 @@ public class NettyClientHandler extends ChannelInboundHandlerAdapter {
     }
 
     /**
-     * 处理客户端消息发生异常的时候被调用
+     * 处理消息发生异常的时候被调用
      */
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         log.error("client catch exception", cause);
         cause.printStackTrace();
         ctx.close();
+    }
+
+    /**
+     * 处理空闲状态事件
+     * */
+    @Override
+    public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+        // 判断触发的事件是否是空闲状态事件
+        if (evt instanceof IdleStateEvent) {
+            IdleState state = ((IdleStateEvent) evt).state();
+            if (state == IdleState.WRITER_IDLE) {
+                // 如果是写空闲事件，表示在规定的时间内没有向服务器发送数据，就发送一个心跳包给服务器以保持连接。
+                log.info("send heart beat package to [{}]", ctx.channel().remoteAddress());
+                Channel channel = ChannelProvider.get((InetSocketAddress) ctx.channel().remoteAddress());
+                RpcRequest rpcRequest = new RpcRequest();
+                rpcRequest.setHeartBeat(true);
+                // 添加一个监听器 ChannelFutureListener.CLOSE_ON_FAILURE，即如果发送失败则关闭连接。
+                channel.writeAndFlush(rpcRequest).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
+            } else {
+                // 如果是其他空闲事件，调用父类的处理方法
+                super.userEventTriggered(ctx, evt);
+            }
+        }
     }
 }

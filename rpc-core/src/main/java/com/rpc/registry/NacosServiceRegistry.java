@@ -1,8 +1,6 @@
 package com.rpc.registry;
 
 import com.alibaba.nacos.api.exception.NacosException;
-import com.alibaba.nacos.api.naming.NamingFactory;
-import com.alibaba.nacos.api.naming.NamingService;
 import com.rpc.enumeration.RpcError;
 import com.rpc.exception.RpcException;
 import com.rpc.util.NacosUtil;

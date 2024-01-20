@@ -16,12 +16,12 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
+import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.AttributeKey;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -56,6 +56,11 @@ public class NettyClient implements RpcClient {
                 .handler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     protected void initChannel(SocketChannel socketChannel) throws Exception {
+                        // IdleStateHandler 是 Netty 提供的处理空闲状态的处理器，用于检测连接的空闲时间，触发相应的空闲事件。
+                        // 第一个参数（readerIdleTime）：读取空闲时间，表示在指定的时间间隔内没有从连接中读取到数据时，触发 READER_IDLE 事件。
+                        // 第二个参数（writerIdleTime）：写入空闲时间，表示在指定的时间间隔内没有向连接中写入数据时，触发 WRITER_IDLE 事件。
+                        // 第三个参数（allIdleTime）：所有类型的空闲时间，表示在指定的时间间隔内既没有读取到数据也没有写入数据时，触发 ALL_IDLE 事件。
+                        socketChannel.pipeline().addLast(new IdleStateHandler(0, 5, 0, TimeUnit.SECONDS));
                         socketChannel.pipeline().addLast(new NettyKryoDecoder(kryoSerializer, RpcResponse.class));
                         socketChannel.pipeline().addLast(new NettyKryoEncoder(kryoSerializer, RpcRequest.class));
                         socketChannel.pipeline().addLast(new NettyClientHandler());
