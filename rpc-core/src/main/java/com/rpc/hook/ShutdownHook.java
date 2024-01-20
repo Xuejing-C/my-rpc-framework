@@ -12,7 +12,6 @@ import java.util.concurrent.ExecutorService;
  */
 @Slf4j
 public class ShutdownHook {
-    private final ExecutorService threadPool = ThreadPoolFactory.createDefaultThreadPool("shutdown-hook");
     private static final ShutdownHook shutdownHook = new ShutdownHook();
 
     /**
@@ -28,7 +27,7 @@ public class ShutdownHook {
     public void addClearAllHook() {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             NacosUtil.clearService(); // 清除服务实例
-            threadPool.shutdown();
+            ThreadPoolFactory.shutDownAll(); // 关闭所有线程池
         }));
     }
 }
