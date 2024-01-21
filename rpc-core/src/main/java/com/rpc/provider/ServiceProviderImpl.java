@@ -22,9 +22,9 @@ public class ServiceProviderImpl implements ServiceProvider {
     private static final Set<String> registeredService = ConcurrentHashMap.newKeySet();
 
     @Override
-    public <T> void addServiceProvider(T service, Class<T> serviceClass) {
+    public <T> void addServiceProvider(T service, String serviceName) {
         // getCanonicalName() 返回类的规范名称(全名)。例如, com.example.MyClass
-        String serviceName = serviceClass.getCanonicalName();
+        // String serviceName = serviceClass.getCanonicalName();
         if (registeredService.contains(serviceName)) return;
         registeredService.add(serviceName);
         /*
@@ -37,7 +37,7 @@ public class ServiceProviderImpl implements ServiceProvider {
         }
         */
         serviceMap.put(serviceName, service);
-        log.info("Add service {} to interfaces {}", serviceName, serviceClass.getInterfaces());
+        log.info("Add service {} to interfaces {}", serviceName, service.getClass().getInterfaces());
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.rpc.test;
 
+import com.rpc.api.ByeService;
 import com.rpc.api.HelloObject;
 import com.rpc.api.HelloService;
 import com.rpc.transport.RpcClient;
@@ -14,11 +15,14 @@ public class SocketTestClient {
         HelloService helloService = proxy.getProxy(HelloService.class); // 代理对象
         HelloObject object = new HelloObject(12, "This is a message");
         // 当代理对象调用方法时，实际调用到SocketRpcClientProxy类中的invoke()方法
-        //String res = helloService.hello(object);
-        //System.out.println(res);
+        String res = helloService.hello(object);
+        System.out.println(res);
+        /*
         for(int i = 0; i < 20; i ++) {
             String res = helloService.hello(object);
             System.out.println(res);
-        }
+        }*/
+        ByeService byeService = proxy.getProxy(ByeService.class);
+        System.out.println(byeService.bye("Netty"));
     }
 }

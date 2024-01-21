@@ -9,6 +9,8 @@ import lombok.Getter;
 @AllArgsConstructor
 @Getter
 public enum RpcError {
+    UNKNOWN_ERROR("unknown error"),
+    SERVICE_SCAN_PACKAGE_NOT_FOUND("service scan package not found"),
     CLIENT_CONNECT_SERVER_FAILURE("cilent connect server failure"),
     SERVICE_INVOCATION_FAILURE("service invocation failure"),
     SERVICE_CAN_NOT_BE_NULL("service can not be null"),
